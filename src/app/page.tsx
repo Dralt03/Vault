@@ -6,12 +6,8 @@ import {
   File,
   FileText,
   Folder,
-  Home,
   Image,
   MoreVertical,
-  Plus,
-  Star,
-  Trash,
   Upload,
 } from "lucide-react";
 
@@ -31,9 +27,8 @@ import {
 } from "../components/ui/dropdown-menu";
 import { Input } from "../components/ui/input";
 import { ScrollArea } from "../components/ui/scroll-area";
-import { Separator } from "../components/ui/separator";
+import SideBar from "~/components/SideBar";
 
-// TypeScript interfaces
 interface FileItem {
   id: string;
   name: string;
@@ -57,12 +52,10 @@ interface BreadcrumbItem {
   name: string;
 }
 
-// Type guard to check if an item is a folder
 const isFolder = (item: DriveItem): item is FolderItem => {
   return item.type === "folder";
 };
 
-// Mock data structure
 const mockData: Record<string, DriveItem | undefined> = {
   root: {
     id: "root",
@@ -160,35 +153,28 @@ export default function GoogleDriveUI(): JSX.Element {
     { id: "root", name: "My Drive" },
   ]);
 
-  // Function to navigate to a folder
   const navigateToFolder = (folderId: string, folderName: string): void => {
-    // Find the index of the folder in the current breadcrumbs
     const existingIndex = breadcrumbs.findIndex(
       (crumb) => crumb.id === folderId,
     );
 
     if (existingIndex >= 0) {
-      // If we're navigating to a folder that's already in our breadcrumb trail,
-      // trim the breadcrumbs to that point
       setBreadcrumbs(breadcrumbs.slice(0, existingIndex + 1));
     } else {
-      // Otherwise add the new folder to our breadcrumbs
       setBreadcrumbs([...breadcrumbs, { id: folderId, name: folderName }]);
     }
 
     setCurrentFolder(folderId);
   };
 
-  // Get the current folder's contents
   const currentFolderData = mockData[currentFolder] as FolderItem | undefined;
   const folderContents: DriveItem[] =
     currentFolderData && isFolder(currentFolderData)
       ? currentFolderData.children
           .map((id) => mockData[id])
-          .filter((item): item is DriveItem => !!item) // Ensures undefined is removed
+          .filter((item): item is DriveItem => !!item)
       : [];
 
-  // Get file icon based on type
   const getFileIcon = (type: FileItem["type"]): JSX.Element => {
     switch (type) {
       case "image":
@@ -207,52 +193,10 @@ export default function GoogleDriveUI(): JSX.Element {
   };
 
   return (
-    <div className="bg-background flex h-screen">
-      {/* Sidebar */}
-      <div className="hidden w-64 border-r p-4 md:block">
-        <div className="mb-6">
-          <Button
-            variant="outline"
-            className="w-full justify-start gap-2 pl-2.5"
-          >
-            <Plus className="h-4 w-4" />
-            New
-          </Button>
-        </div>
+    <div className="flex h-screen bg-background">
+      <SideBar />
 
-        <nav className="space-y-1">
-          <Button variant="ghost" className="w-full justify-start gap-2 pl-2.5">
-            <Home className="h-4 w-4" />
-            My Drive
-          </Button>
-          <Button variant="ghost" className="w-full justify-start gap-2 pl-2.5">
-            <Star className="h-4 w-4" />
-            Starred
-          </Button>
-          <Button variant="ghost" className="w-full justify-start gap-2 pl-2.5">
-            <Trash className="h-4 w-4" />
-            Trash
-          </Button>
-        </nav>
-
-        <Separator className="my-4" />
-
-        <div className="space-y-1">
-          <h3 className="px-2 text-sm font-medium">Storage</h3>
-          <div className="px-2 py-1">
-            <div className="bg-muted h-2 rounded-full">
-              <div className="h-2 w-1/3 rounded-full bg-blue-500"></div>
-            </div>
-            <p className="text-muted-foreground mt-1 text-xs">
-              3.5 GB of 15 GB used
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Main content */}
       <div className="flex-1 overflow-hidden">
-        {/* Header */}
         <header className="flex h-14 items-center border-b px-4">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-semibold">Google Drive</h1>
@@ -271,7 +215,7 @@ export default function GoogleDriveUI(): JSX.Element {
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="rounded-lg border-2 border-dashed p-10 text-center">
-                    <Upload className="text-muted-foreground mx-auto h-10 w-10" />
+                    <Upload className="mx-auto h-10 w-10 text-muted-foreground" />
                     <p className="mt-2 text-sm font-medium">
                       Drag and drop files here or click to browse
                     </p>
@@ -287,12 +231,11 @@ export default function GoogleDriveUI(): JSX.Element {
           </div>
         </header>
 
-        {/* Breadcrumbs */}
         <div className="flex items-center gap-1 border-b px-4 py-2">
           {breadcrumbs.map((crumb, index) => (
             <div key={crumb.id} className="flex items-center">
               {index > 0 && (
-                <ChevronRight className="text-muted-foreground h-4 w-4" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               )}
               <Button
                 variant="ghost"
@@ -306,19 +249,18 @@ export default function GoogleDriveUI(): JSX.Element {
           ))}
         </div>
 
-        {/* File list */}
         <ScrollArea className="h-[calc(100vh-8.5rem)]">
           <div className="p-4">
             <div className="grid grid-cols-1 gap-2">
               {folderContents.length === 0 ? (
-                <div className="text-muted-foreground py-12 text-center">
+                <div className="py-12 text-center text-muted-foreground">
                   <p>This folder is empty</p>
                 </div>
               ) : (
                 folderContents.map((item: DriveItem) => (
                   <div
                     key={item.id}
-                    className="hover:bg-muted group flex items-center justify-between rounded-lg border p-3"
+                    className="group flex items-center justify-between rounded-lg border p-3 hover:bg-muted"
                   >
                     <div className="flex items-center gap-3">
                       {item.type === "folder" ? (
@@ -347,10 +289,10 @@ export default function GoogleDriveUI(): JSX.Element {
                     <div className="flex items-center gap-4">
                       {item.type !== "folder" && (
                         <>
-                          <span className="text-muted-foreground hidden text-sm md:inline">
+                          <span className="hidden text-sm text-muted-foreground md:inline">
                             {item.modified}
                           </span>
-                          <span className="text-muted-foreground hidden text-sm md:inline">
+                          <span className="hidden text-sm text-muted-foreground md:inline">
                             {item.size}
                           </span>
                         </>
